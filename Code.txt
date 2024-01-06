@@ -1,0 +1,86 @@
+#include <FirebaseRealtime.h>
+#include <Wire.h>
+
+#define FIREBASE_REALTIME_URL "https://janavi-636aa-default-rtdb.firebaseio.com/"
+#define FIREBASE_REALTIME_SECRET "MCkTFAlYsu6BwqEIaNXG2Sg5239m97WZJ8RFsZGB"
+
+#define RLED D6
+#define GLED D7
+const int sensorPin1 = D1;
+const int sensorPin2 = D2;
+const int sensorPin3 = D3;
+const int sensorPin4 = D4;
+
+char ssid[] = "Cj";
+char pass[] = "qqqqqqqq";
+
+FirebaseRealtime firebaseRealtime;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(sensorPin1, INPUT);
+  pinMode(sensorPin2, INPUT);
+  pinMode(sensorPin3, INPUT);
+  pinMode(sensorPin4, INPUT);
+  pinMode(RLED, OUTPUT);
+  pinMode(GLED, OUTPUT);
+  firebaseRealtime.begin(FIREBASE_REALTIME_URL, FIREBASE_REALTIME_SECRET, ssid, pass);
+}
+
+void loop() {
+  int value1 = digitalRead(sensorPin1);
+  int value2 = digitalRead(sensorPin2);
+  int value3 = digitalRead(sensorPin3);
+  int value4 = digitalRead(sensorPin4);
+
+  Serial.print("Sensor 1: ");
+  Serial.print(value1);
+  Serial.print(" | Sensor 2: ");
+  Serial.print(value2);
+  Serial.print(" | Sensor 3: ");
+  Serial.print(value3);
+  Serial.print(" | Sensor 4: ");
+  Serial.println(value4);
+
+String S1;
+String S2;
+String S3;
+String S4;
+//1
+if(value1==1)  {S1="Available";}
+else{S1="Not_Available";}
+//2
+if(value2==1)  {S2="Available";}
+else{S2="Not_Available";}
+//3
+if(value3==1)  {S3="Available";}
+else{S3="Not_Available";}
+//4
+if(value4==1)  {S4="Available";}
+else{S4="Not_Available";}
+
+//LED
+if(value1==0 && value2==0 && value3==0 && value4==0)  //if full
+{
+  Serial.println("RED light on");
+    digitalWrite(RLED, HIGH);
+    digitalWrite(GLED, LOW);
+}
+else
+{
+    digitalWrite(RLED, LOW);
+    digitalWrite(GLED, HIGH);
+}
+
+//send deta to firebase
+  DynamicJsonDocument saveDoc(1024);
+  saveDoc["S1"] = S1;
+  saveDoc["S2"] = S2;
+  saveDoc["S3"] = S3;
+  saveDoc["S4"] = S4;
+
+  String saveJSONData;
+  serializeJson(saveDoc, saveJSONData);
+  firebaseRealtime.save("CarPark","1", saveJSONData, true);
+delay(1000); 
+}
